@@ -4,7 +4,10 @@ import styled from 'styled-components';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
-// --- Styled Components Definition ---
+// API 기본 URL을 .env 파일에서 가져옵니다.
+const API_URL = process.env.REACT_APP_API_URL;
+
+// --- (이전과 동일한 Styled Components 코드) ---
 const Wrapper = styled.div`
   display: flex;
   flex-direction: column;
@@ -243,7 +246,7 @@ function MainPage() {
   const [selectedGroup, setSelectedGroup] = useState(null);
   const [password, setPassword] = useState(['', '', '', '']);
   const passwordInputs = useRef([]);
-  
+
   const navigate = useNavigate();
 
   const handleSearch = async (e) => {
@@ -251,7 +254,8 @@ function MainPage() {
     if (!searchTerm.trim()) return;
 
     try {
-      const response = await axios.get(`http://localhost:8000/groups/search/`, { params: { name: searchTerm } });
+      // [수정] 하드코딩된 주소를 환경 변수로 교체합니다.
+      const response = await axios.get(`${API_URL}/groups/search/`, { params: { name: searchTerm } });
       setSearchResults(response.data);
     } catch (error) {
       console.error('Search error:', error);
@@ -283,7 +287,7 @@ function MainPage() {
       }
     }
   };
-  
+
   const handleJoin = (e) => {
     e.preventDefault();
     const finalPassword = password.join('');
@@ -291,11 +295,12 @@ function MainPage() {
       alert("입장코드를 모두 입력해주세요.");
       return;
     }
-    
-    axios.post('http://localhost:8000/groups/join/', { name: selectedGroup.name, password: finalPassword })
+
+    // [수정] 하드코딩된 주소를 환경 변수로 교체합니다.
+    axios.post(`${API_URL}/groups/join/`, { name: selectedGroup.name, password: finalPassword })
     .then(response => {
         alert(response.data.detail);
-        navigate('/success'); // 성공 페이지로 이동
+        navigate('/success');
     })
     .catch(error => {
         const errorMessage = error.response?.data?.detail || '알 수 없는 오류가 발생했습니다.';
@@ -310,7 +315,7 @@ function MainPage() {
       <Header>
         <Title>내 동아리를 찾아볼까요?</Title>
         <SearchForm onSubmit={handleSearch}>
-          <SearchInput 
+          <SearchInput
             type="text"
             placeholder="검색어를 입력하세요."
             value={searchTerm}
@@ -321,13 +326,14 @@ function MainPage() {
           </SearchIcon>
         </SearchForm>
       </Header>
-      
+
       <Content>
         {searchResults.length > 0 ? (
           <ResultsList>
             {searchResults.map(group => (
               <ResultItem key={group.id}>
-                <ClubLogo src={`http://localhost:8000${group.image_url}`} />
+                 {/* [수정] 이미지 URL 앞에 API 주소를 붙여줍니다. */}
+                <ClubLogo src={`${API_URL}${group.image_url}`} />
                 <ClubInfo>
                   <ClubName>{group.name}</ClubName>
                   <ClubDescription>{group.description}</ClubDescription>
@@ -350,7 +356,8 @@ function MainPage() {
         <ModalOverlay onClick={closeModal}>
           <ModalContent onClick={e => e.stopPropagation()}>
             <CloseButton onClick={closeModal}>&times;</CloseButton>
-            <ModalClubLogo src={`http://localhost:8000${selectedGroup.image_url}`} />
+            {/* [수정] 이미지 URL 앞에 API 주소를 붙여줍니다. */}
+            <ModalClubLogo src={`${API_URL}${selectedGroup.image_url}`} />
             <ModalClubName>{selectedGroup.name}</ModalClubName>
             <ModalTags>
               <span>{selectedGroup.group_type}</span>

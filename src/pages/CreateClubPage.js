@@ -4,6 +4,10 @@ import styled from 'styled-components';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
+// API 기본 URL을 .env 파일에서 가져옵니다.
+const API_URL = process.env.REACT_APP_API_URL;
+
+// --- (이전과 동일한 Styled Components 코드) ---
 const Wrapper = styled.div`
   display: flex;
   justify-content: center;
@@ -69,6 +73,7 @@ const SubmitButton = styled.button`
   margin-top: 10px;
 `;
 
+
 function CreateClubPage() {
     const [clubInfo, setClubInfo] = useState({ name: '', group_type: '', topic: '', description: '', password: '' });
     const [imageFile, setImageFile] = useState(null);
@@ -99,7 +104,8 @@ function CreateClubPage() {
         formData.append('file', imageFile);
 
         try {
-            await axios.post('http://localhost:8000/groups/', formData);
+            // [수정] 하드코딩된 주소를 환경 변수로 교체합니다.
+            await axios.post(`${API_URL}/groups/`, formData);
             alert('동아리가 성공적으로 생성되었습니다!');
             navigate('/success');
         } catch (error) {

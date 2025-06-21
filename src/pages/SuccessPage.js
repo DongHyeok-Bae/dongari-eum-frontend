@@ -53,8 +53,8 @@ function SuccessPage() {
     return (
         <Wrapper>
             <Logo src={logoUrl} alt="동아리 로고" />
-            <Title>구름톤 유니브</Title>
-            <Subtitle>동아리 참여를 시작해요!</Subtitle>
+            <Title>동아리음</Title>
+            <Subtitle>동아리 일정관리를 시작해요!</Subtitle>
             <HomeButton onClick={() => navigate('/')}>내 동아리 보러가기</HomeButton>
         </Wrapper>
     );
