@@ -158,3 +158,20 @@ body {
 .password-inputs input:focus { border-color: #4A55A2; outline: none; }
 .modal-join-button { width: 100%; padding: 15px; font-size: 1rem; border: none; border-radius: 8px; background-color: #4A55A2; color: white; cursor: pointer; transition: background-color 0.2s; }
 .modal-join-button:hover { background-color: #3a4380; }
+
+/* 링크처럼 보이는 버튼을 위한 스타일 */
+.create-group-link-button {
+  background: none;
+  border: none;
+  color: #4A55A2;
+  font-weight: 500;
+  cursor: pointer;
+  text-decoration: none;
+  padding: 0;
+  font-size: 1rem; /* 기존 링크와 글자 크기 맞춤 */
+  font-family: 'Noto Sans KR', sans-serif; /* 폰트 일치 */
+}
+
+.create-group-link-button:hover {
+  text-decoration: underline;
+}

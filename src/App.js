@@ -32,7 +32,6 @@ function App() {
     if (!searchTerm.trim()) return;
 
     try {
-      // [오류 수정] 백틱(``)을 사용하여 환경 변수와 함께 완전한 URL 생성
       const response = await fetch(`${API_URL}/groups/search/?name=${searchTerm}`);
       if (!response.ok) throw new Error('Search failed');
       const data = await response.json();
@@ -79,7 +78,6 @@ function App() {
     
     const joinData = { name: selectedGroup.name, password: finalPassword };
     try {
-      // [오류 수정] 백틱(``)을 사용하여 환경 변수와 함께 완전한 URL 생성
       const response = await fetch(`${API_URL}/groups/join/`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -96,9 +94,9 @@ function App() {
     }
   };
 
-  // TODO: 동아리 생성 기능은 별도의 페이지나 모달로 구현해야 합니다.
   const handleCreateGroupRedirect = () => {
     alert("동아리 생성 기능은 아직 구현되지 않았습니다.");
+    // TODO: 나중에 동아리 생성 페이지로 라우팅
     // 예: window.location.href = '/create-group';
   };
 
@@ -122,7 +120,8 @@ function App() {
         {!searched ? (
           <div className="initial-message">
             <p>동아리 이름 혹은 설명을 검색해보세요!</p>
-            <a href="#" onClick={handleCreateGroupRedirect} className="create-group-link">새로운 동아리를 만들래요!</a>
+            {/* [수정됨] a 태그를 button 태그로 변경 */}
+            <button onClick={handleCreateGroupRedirect} className="create-group-link-button">새로운 동아리를 만들래요!</button>
           </div>
         ) : searchResults.length > 0 ? (
           searchResults.map((group) => (
@@ -140,7 +139,8 @@ function App() {
         ) : (
           <div className="no-results-message">
             <p>'{searchTerm}'에 대한 검색 결과가 없습니다.</p>
-            <a href="#" onClick={handleCreateGroupRedirect} className="create-group-link">새로운 동아리를 직접 만들어보세요!</a>
+            {/* [수정됨] a 태그를 button 태그로 변경 */}
+            <button onClick={handleCreateGroupRedirect} className="create-group-link-button">새로운 동아리를 직접 만들어보세요!</button>
           </div>
         )}
       </main>
