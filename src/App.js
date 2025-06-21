@@ -24,7 +24,7 @@ function App() {
     e.preventDefault();
     const groupData = { name: createName, group_type: createType, topic: createTopic, description: createDescription, password: createPassword };
     try {
-      const response = await fetch('/groups/', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(groupData) });
+      const response = await fetch('${process.env.REACT_APP_API_URL}/groups/', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(groupData) });
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.detail || '동아리 생성에 실패했습니다.');
@@ -45,7 +45,7 @@ function App() {
       return;
     }
     try {
-      const response = await fetch(`/groups/search/?name=${searchName}`);
+      const response = await fetch(`<span class="math-inline">\{process\.env\.REACT\_APP\_API\_URL\}/groups/search/?name=${searchName}`);
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.detail || '동아리 검색에 실패했습니다.');
@@ -97,7 +97,7 @@ function App() {
     
     const joinData = { name: selectedGroup.name, password: finalPassword };
     try {
-      const response = await fetch('/groups/join/', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(joinData) });
+      const response = await fetch('${process.env.REACT_APP_API_URL}/groups/join/', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(joinData) });
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.detail || '동아리 참여에 실패했습니다.');
