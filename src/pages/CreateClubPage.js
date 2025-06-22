@@ -75,7 +75,7 @@ const SubmitButton = styled.button`
 
 
 function CreateClubPage() {
-    const [clubInfo, setClubInfo] = useState({ name: '', group_type: '', topic: '', description: '', password: '' });
+    const [clubInfo, setClubInfo] = useState({ name: '', club_type: '', topic: '', description: '', password: '' });
     const [imageFile, setImageFile] = useState(null);
     const navigate = useNavigate();
 
@@ -97,17 +97,29 @@ function CreateClubPage() {
 
         const formData = new FormData();
         formData.append('name', clubInfo.name);
-        formData.append('group_type', clubInfo.group_type);
+        formData.append('club_type', clubInfo.club_type);
         formData.append('topic', clubInfo.topic);
         formData.append('description', clubInfo.description);
         formData.append('password', clubInfo.password);
-        formData.append('file', imageFile);
+        if (imageFile) formData.append('file', imageFile);
 
         try {
-            // [수정] 하드코딩된 주소를 환경 변수로 교체합니다.
-            await axios.post(`${API_URL}/groups/`, formData);
-            alert('동아리가 성공적으로 생성되었습니다!');
-            navigate('/success');
+            const response = await axios.post(`${API_URL}/clubs`, formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data'
+                }
+            });
+            if (response.status === 200) {
+                const newClub = response.data;
+                navigate('/success', { 
+                    state: { 
+                        id: newClub.id,
+                        name: newClub.name, 
+                        imageUrl: newClub.image_url ? `${API_URL}/${newClub.image_url}` : null,
+                        action: 'create'
+                    } 
+                });
+            }
         } catch (error) {
             const errorMessage = error.response?.data?.detail || '입력 내용을 다시 확인해주세요.';
             alert(`생성 실패: ${errorMessage}`);
@@ -125,7 +137,7 @@ function CreateClubPage() {
                     </FormGroup>
                     <FormGroup>
                         <Label>동아리 유형</Label>
-                        <Input type="text" name="group_type" placeholder="예: 연합, 교내" onChange={handleChange} required />
+                        <Input type="text" name="club_type" placeholder="예: 연합, 교내" onChange={handleChange} required />
                     </FormGroup>
                     <FormGroup>
                         <Label>동아리 주제</Label>

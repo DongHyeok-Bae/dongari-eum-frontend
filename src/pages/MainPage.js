@@ -251,15 +251,16 @@ function MainPage() {
 
   const handleSearch = async (e) => {
     e.preventDefault();
-    if (!searchTerm.trim()) return;
-
+    if (!searchTerm.trim()) {
+      setSearchResults([]);
+      return;
+    }
     try {
-      // [수정] 하드코딩된 주소를 환경 변수로 교체합니다.
-      const response = await axios.get(`${API_URL}/groups/search/`, { params: { name: searchTerm } });
+      const response = await axios.get(`${API_URL}/clubs?name=${searchTerm}`);
       setSearchResults(response.data);
     } catch (error) {
-      console.error('Search error:', error);
-      setSearchResults([]);
+      console.error("동아리 검색 실패:", error);
+      alert("동아리 검색에 실패했습니다.");
     } finally {
       setIsSearched(true);
     }
@@ -277,35 +278,54 @@ function MainPage() {
   };
 
   const handlePasswordChange = (e, index) => {
-    const value = e.target.value;
-    if (/^[0-9]?$/.test(value)) {
+    const { value } = e.target;
+    // 입력값이 숫자인 경우에만 처리하고, 값 길이는 1로 제한
+    if (/^[0-9]$/.test(value)) {
       const newPassword = [...password];
       newPassword[index] = value;
       setPassword(newPassword);
-      if (value && index < 3) {
+
+      // 다음 입력창으로 포커스 이동
+      if (index < 3) {
         passwordInputs.current[index + 1].focus();
       }
+    } else if (value === '') {
+        // 값이 지워졌을 때 (예: 전체선택 후 삭제)
+        const newPassword = [...password];
+        newPassword[index] = '';
+        setPassword(newPassword);
     }
   };
 
-  const handleJoin = (e) => {
-    e.preventDefault();
-    const finalPassword = password.join('');
-    if (finalPassword.length !== 4) {
-      alert("입장코드를 모두 입력해주세요.");
-      return;
+  const handleKeyDown = (e, index) => {
+    // 백스페이스 키를 눌렀을 때
+    if (e.key === 'Backspace' && password[index] === '' && index > 0) {
+      passwordInputs.current[index - 1].focus();
     }
+  };
 
-    // [수정] 하드코딩된 주소를 환경 변수로 교체합니다.
-    axios.post(`${API_URL}/groups/join/`, { name: selectedGroup.name, password: finalPassword })
-    .then(response => {
-        alert(response.data.detail);
-        navigate('/success');
-    })
-    .catch(error => {
+  const handleJoin = async (e) => {
+    e.preventDefault();
+    if (password.join('').length !== 4) return;
+    const finalPassword = password.join('');
+
+    try {
+      await axios.post(`${API_URL}/clubs/join`, { name: selectedGroup.name, password: finalPassword });
+      alert('동아리 참여 요청이 완료되었습니다.'); // 실제 가입 처리는 백엔드에서...
+      closeModal();
+      // 필요하다면 가입 후 특정 페이지로 이동
+      navigate('/success', {
+        state: {
+          id: selectedGroup.id,
+          name: selectedGroup.name,
+          imageUrl: `${API_URL}/${selectedGroup.image_url}`,
+          action: 'join'
+        }
+      });
+    } catch (error) {
         const errorMessage = error.response?.data?.detail || '알 수 없는 오류가 발생했습니다.';
         alert(`참여에 실패했습니다: ${errorMessage}`);
-    });
+    }
   };
 
   const isJoinButtonActive = password.join('').length === 4;
@@ -332,8 +352,7 @@ function MainPage() {
           <ResultsList>
             {searchResults.map(group => (
               <ResultItem key={group.id}>
-                 {/* [수정] 이미지 URL 앞에 API 주소를 붙여줍니다. */}
-                <ClubLogo src={`${API_URL}${group.image_url}`} />
+                <ClubLogo src={`${API_URL}/${group.image_url}`} alt={group.name} />
                 <ClubInfo>
                   <ClubName>{group.name}</ClubName>
                   <ClubDescription>{group.description}</ClubDescription>
@@ -356,26 +375,24 @@ function MainPage() {
         <ModalOverlay onClick={closeModal}>
           <ModalContent onClick={e => e.stopPropagation()}>
             <CloseButton onClick={closeModal}>&times;</CloseButton>
-            {/* [수정] 이미지 URL 앞에 API 주소를 붙여줍니다. */}
-            <ModalClubLogo src={`${API_URL}${selectedGroup.image_url}`} />
+            <ModalClubLogo src={`${API_URL}/${selectedGroup.image_url}`} alt={selectedGroup.name} />
             <ModalClubName>{selectedGroup.name}</ModalClubName>
             <ModalTags>
-              <span>{selectedGroup.group_type}</span>
+              <span>{selectedGroup.club_type}</span>
               <span>{selectedGroup.topic}</span>
             </ModalTags>
             <form onSubmit={handleJoin} style={{width: '100%', display: 'contents'}}>
               <CodeLabel>입장코드</CodeLabel>
               <PasswordInputs>
-                {password.map((digit, index) => (
+                {password.map((p, index) => (
                   <input
                     key={index}
                     type="text"
-                    inputMode="numeric"
                     maxLength="1"
-                    value={digit}
+                    value={p}
                     onChange={(e) => handlePasswordChange(e, index)}
-                    ref={(el) => (passwordInputs.current[index] = el)}
-                    required
+                    onKeyDown={(e) => handleKeyDown(e, index)}
+                    ref={el => passwordInputs.current[index] = el}
                   />
                 ))}
               </PasswordInputs>

@@ -1,7 +1,9 @@
 // src/pages/SuccessPage.js
 import React from 'react';
 import styled from 'styled-components';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
+
+const API_URL = process.env.REACT_APP_API_URL;
 
 const Wrapper = styled.div`
   display: flex;
@@ -44,18 +46,33 @@ const HomeButton = styled.button`
 
 function SuccessPage() {
     const navigate = useNavigate();
+    const location = useLocation();
     
-    // 로고 이미지는 임시로 public 폴더에 넣고 사용하거나, 
-    // 실제로는 동적으로 받아온 동아리 로고를 사용해야 합니다.
-    // 여기서는 임시 플레이스홀더를 사용합니다.
-    const logoUrl = "https://via.placeholder.com/120";
+    // location.state가 존재하면 그 값을 사용하고, 없으면 기본값을 사용합니다.
+    const { id, name, imageUrl, action } = location.state || { id: null, name: '동아리', imageUrl: null, action: '' };
+
+    const logoUrl = imageUrl || "https://via.placeholder.com/120";
+    const subtitleText = action === 'create' 
+        ? '동아리 생성이 완료되었어요!' 
+        : '동아리 참여가 완료되었어요!';
+
+    const goToClubMainPage = () => {
+      if (id) {
+        navigate(`/club/${id}`);
+      } else {
+        // ID가 없는 경우, 일단 메인으로 보내거나 에러 처리를 할 수 있습니다.
+        // 여기서는 검색 페이지로 돌려보냅니다.
+        alert("동아리 정보를 불러올 수 없습니다. 다시 시도해주세요.");
+        navigate('/search');
+      }
+    }
 
     return (
         <Wrapper>
-            <Logo src={logoUrl} alt="동아리 로고" />
-            <Title>동아리음</Title>
-            <Subtitle>동아리 일정관리를 시작해요!</Subtitle>
-            <HomeButton onClick={() => navigate('/')}>내 동아리 보러가기</HomeButton>
+            <Logo src={logoUrl} alt={`${name} 로고`} />
+            <Title>{name}</Title>
+            <Subtitle>{subtitleText}</Subtitle>
+            <HomeButton onClick={goToClubMainPage}>내 동아리 보러가기</HomeButton>
         </Wrapper>
     );
 }
