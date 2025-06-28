@@ -148,8 +148,8 @@ function CreateClubPage() {
                         <Textarea name="description" onChange={handleChange} required />
                     </FormGroup>
                     <FormGroup>
-                        <Label>입장코드 (숫자 4자리)</Label>
-                        <Input type="password" name="password" maxLength="4" onChange={handleChange} required />
+                        <Label>입장코드 (숫자 6자리)</Label>
+                        <Input type="password" name="password" maxLength="6" onChange={handleChange} required />
                     </FormGroup>
                      <FormGroup>
                         <Label>대표 이미지</Label>

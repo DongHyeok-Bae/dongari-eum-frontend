@@ -76,11 +76,6 @@ const Icon = styled.span`
   color: #a0aec0;
 `;
 
-const NameFieldsWrapper = styled.div`
-  display: flex;
-  gap: 20px;
-`;
-
 const CheckboxWrapper = styled.label`
   display: flex;
   align-items: center;
@@ -134,12 +129,12 @@ const Link = styled.a`
 function SignupPage() {
     const navigate = useNavigate();
     const [formData, setFormData] = useState({
+        name: '', // 'name'으로 통합
         email: '',
         password: '',
         confirmPassword: '',
-        first_name: '',
-        last_name: '',
-        phone_number: '',
+        affiliation: '', // '소속' 추가
+        introduction: '', // '한 줄 소개' 추가
     });
     const [error, setError] = useState('');
 
@@ -157,13 +152,16 @@ function SignupPage() {
         }
 
         try {
-            const response = await axios.post(`${API_URL}/auth/signup`, {
+            // API 요청 시 보낼 데이터
+            const signupData = {
+                name: formData.name,
                 email: formData.email,
                 password: formData.password,
-                first_name: formData.first_name,
-                last_name: formData.last_name,
-                phone_number: formData.phone_number,
-            });
+                affiliation: formData.affiliation,
+                introduction: formData.introduction,
+            };
+
+            await axios.post(`${API_URL}/auth/signup`, signupData);
 
             alert('회원가입에 성공했습니다! 로그인 페이지로 이동합니다.');
             navigate('/');
@@ -180,47 +178,48 @@ function SignupPage() {
                 <Title>회원가입</Title>
                 <Subtitle>새 계정을 만들어 서비스를 시작하세요</Subtitle>
                 <Form onSubmit={handleSubmit}>
-                    <NameFieldsWrapper>
-                        <InputWrapper style={{ flex: 1 }}>
-                            <Label htmlFor="first_name">이름</Label>
-                            <Icon>👤</Icon>
-                            <Input type="text" id="first_name" placeholder="이름" value={formData.first_name} onChange={handleChange} />
-                        </InputWrapper>
-                        <InputWrapper style={{ flex: 1 }}>
-                            <Label htmlFor="last_name">성</Label>
-                            <Icon>👤</Icon>
-                            <Input type="text" id="last_name" placeholder="성" value={formData.last_name} onChange={handleChange} />
-                        </InputWrapper>
-                    </NameFieldsWrapper>
+                    <Label htmlFor="name">이름</Label>
+                    <InputWrapper>
+                        <Icon>👤</Icon>
+                        <Input type="text" id="name" placeholder="이름을 입력하세요" value={formData.name} onChange={handleChange} required />
+                    </InputWrapper>
 
                     <Label htmlFor="email">이메일</Label>
                     <InputWrapper>
                         <Icon>📧</Icon>
-                        <Input type="email" id="email" placeholder="이메일을 입력하세요" value={formData.email} onChange={handleChange} />
+                        <Input type="email" id="email" placeholder="이메일을 입력하세요" value={formData.email} onChange={handleChange} required />
                     </InputWrapper>
 
-                    <Label htmlFor="phone_number">전화번호</Label>
+                    <Label htmlFor="affiliation">소속</Label>
                     <InputWrapper>
-                        <Icon>📞</Icon>
-                        <Input type="tel" id="phone_number" placeholder="전화번호를 입력하세요" value={formData.phone_number} onChange={handleChange} />
+                        <Icon>🏢</Icon>
+                        <Input type="text" id="affiliation" placeholder="소속을 입력하세요 (선택)" value={formData.affiliation} onChange={handleChange} />
+                    </InputWrapper>
+
+                    <Label htmlFor="introduction">한 줄 소개</Label>
+                    <InputWrapper>
+                         <Icon>✏️</Icon>
+                        <Input type="text" id="introduction" placeholder="자신을 한 줄로 소개해주세요 (선택)" value={formData.introduction} onChange={handleChange} />
                     </InputWrapper>
 
                     <Label htmlFor="password">비밀번호</Label>
                     <InputWrapper>
                         <Icon>🔒</Icon>
-                        <Input type="password" id="password" placeholder="비밀번호를 입력하세요" value={formData.password} onChange={handleChange} />
+                        <Input type="password" id="password" placeholder="비밀번호를 입력하세요" value={formData.password} onChange={handleChange} required />
                     </InputWrapper>
 
                     <Label htmlFor="confirmPassword">비밀번호 확인</Label>
                     <InputWrapper>
                         <Icon>🔒</Icon>
-                        <Input type="password" id="confirmPassword" placeholder="비밀번호를 다시 입력하세요" value={formData.confirmPassword} onChange={handleChange} />
+                        <Input type="password" id="confirmPassword" placeholder="비밀번호를 다시 입력하세요" value={formData.confirmPassword} onChange={handleChange} required />
                     </InputWrapper>
 
                     <CheckboxWrapper>
-                        <Checkbox type="checkbox" id="terms" />
+                        <Checkbox type="checkbox" id="terms" required/>
                         이용약관 및 개인정보처리방침에 동의합니다
                     </CheckboxWrapper>
+
+                    {error && <p style={{ color: 'red', textAlign: 'center', marginBottom: '15px' }}>{error}</p>}
 
                     <Button type="submit">회원가입</Button>
                 </Form>
@@ -234,4 +233,4 @@ function SignupPage() {
     );
 }
 
-export default SignupPage; 
+export default SignupPage;

@@ -205,13 +205,13 @@ const CodeLabel = styled.p`
 
 const PasswordInputs = styled.div`
   display: flex;
-  gap: 15px;
+  gap: 10px; /* 간격 살짝 줄임 */
   margin-bottom: 30px;
   input {
-    width: 50px;
-    height: 60px;
+    width: 45px; /* 너비 살짝 줄임 */
+    height: 55px; /* 높이 살짝 줄임 */
     text-align: center;
-    font-size: 2rem;
+    font-size: 1.8rem; /* 폰트 크기 살짝 줄임 */
     border: 1px solid #ccc;
     border-radius: 8px;
     &:focus {
@@ -244,7 +244,7 @@ function MainPage() {
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedGroup, setSelectedGroup] = useState(null);
-  const [password, setPassword] = useState(['', '', '', '']);
+  const [password, setPassword] = useState(['', '', '', '', '', '']); // 6자리로 변경
   const passwordInputs = useRef([]);
 
   const navigate = useNavigate();
@@ -274,7 +274,7 @@ function MainPage() {
   const closeModal = () => {
     setIsModalOpen(false);
     setSelectedGroup(null);
-    setPassword(['', '', '', '']);
+    setPassword(['', '', '', '', '', '']); // 6자리로 변경
   };
 
   const handlePasswordChange = (e, index) => {
@@ -286,7 +286,7 @@ function MainPage() {
       setPassword(newPassword);
 
       // 다음 입력창으로 포커스 이동
-      if (index < 3) {
+      if (index < 5) { // 5로 변경 (0-5 인덱스)
         passwordInputs.current[index + 1].focus();
       }
     } else if (value === '') {
@@ -306,7 +306,7 @@ function MainPage() {
 
   const handleJoin = async (e) => {
     e.preventDefault();
-    if (password.join('').length !== 4) return;
+    if (password.join('').length !== 6) return; // 6자리로 변경
     const finalPassword = password.join('');
 
     try {
@@ -328,7 +328,7 @@ function MainPage() {
     }
   };
 
-  const isJoinButtonActive = password.join('').length === 4;
+  const isJoinButtonActive = password.join('').length === 6; // 6자리로 변경
 
   return (
     <Wrapper>

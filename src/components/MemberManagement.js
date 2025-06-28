@@ -1,327 +1,343 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import styled from 'styled-components';
-import axios from 'axios';
+import React, { useState, useEffect } from "react";
+import styled from "styled-components";
+import axios from "axios";
 
-const API_URL = process.env.REACT_APP_API_URL;
-
-const Wrapper = styled.div`
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-`;
-
-const Header = styled.div`
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 30px;
-`;
-
-const MainTitle = styled.h1`
-  font-size: 2rem;
-  font-weight: 700;
-`;
-
-const AddButton = styled.button`
-  padding: 10px 20px;
-  border-radius: 8px;
-  background-color: var(--main-blue);
-  color: white;
-  font-size: 1rem;
-  font-weight: 500;
-  cursor: pointer;
-`;
-
-const TableWrapper = styled.div`
-  width: 100%;
-  background: white;
-  border-radius: 8px;
+// Styled-components for styling the component
+const Container = styled.div`
   padding: 20px;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+  background-color: #f9f9f9;
+  border-radius: 8px;
 `;
 
-const Table = styled.table`
-  width: 100%;
-  border-collapse: collapse;
-  text-align: left;
-  
-  th, td {
-    padding: 15px;
-    border-bottom: 1px solid #f0f0f0;
-  }
-  
-  th {
-    font-weight: 600;
-    color: var(--text-secondary);
-  }
-  
-  tbody tr:last-child td {
-    border-bottom: none;
-  }
+const Title = styled.h2`
+  color: #333;
+  border-bottom: 2px solid #ddd;
+  padding-bottom: 10px;
 `;
 
-// 모달 스타일 추가
-const ModalOverlay = styled.div`
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(0, 0, 0, 0.5);
+const Form = styled.form`
   display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 1000;
-`;
-
-const ModalContent = styled.div`
-  background: white;
-  padding: 30px;
-  border-radius: 12px;
-  width: 90%;
-  max-width: 500px;
-  box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-`;
-
-const ModalForm = styled.form`
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 20px;
-`;
-
-const FormGroup = styled.div`
-  display: flex;
-  flex-direction: column;
-`;
-
-const Label = styled.label`
-  margin-bottom: 5px;
-  font-weight: 500;
-  font-size: 0.9rem;
+  flex-wrap: wrap;
+  gap: 15px;
+  margin-bottom: 20px;
+  background-color: #fff;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 `;
 
 const Input = styled.input`
   padding: 10px;
   border: 1px solid #ccc;
-  border-radius: 6px;
+  border-radius: 4px;
+  flex: 1 1 calc(33.333% - 30px);
+  min-width: 150px;
 `;
 
-const ModalActions = styled.div`
-  grid-column: 1 / -1;
-  display: flex;
-  justify-content: flex-end;
-  gap: 10px;
-  margin-top: 20px;
+// 성별 선택을 위한 Select 스타일 추가
+const Select = styled.select`
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  flex: 1 1 calc(33.333% - 30px);
+  min-width: 150px;
+  background-color: white;
 `;
 
-const SaveButton = styled.button`
+const Button = styled.button`
   padding: 10px 20px;
-  border-radius: 8px;
-  background-color: var(--main-blue);
+  background-color: #007bff;
   color: white;
-`;
-
-const CancelButton = styled(SaveButton)`
-  background-color: #6c757d;
-`;
-
-const ActionButton = styled.button`
-  background: none;
   border: none;
+  border-radius: 4px;
   cursor: pointer;
-  color: var(--main-blue);
-  margin-left: 10px;
-  font-size: 0.9rem;
-  
+  transition: background-color 0.3s;
+
   &:hover {
-    text-decoration: underline;
+    background-color: #0056b3;
   }
 `;
 
-function MemberManagement({ clubId }) {
-  const [members, setMembers] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [formData, setFormData] = useState({});
-  const [editingMember, setEditingMember] = useState(null);
+const Table = styled.table`
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+`;
 
-  const fetchMembers = useCallback(async () => {
-    if (!clubId) return;
+const Th = styled.th`
+  background-color: #f2f2f2;
+  padding: 12px;
+  border: 1px solid #ddd;
+  text-align: left;
+`;
+
+const Td = styled.td`
+  padding: 12px;
+  border: 1px solid #ddd;
+`;
+
+const ActionButton = styled.button`
+  padding: 5px 10px;
+  margin-right: 5px;
+  border: none;
+  border-radius: 3px;
+  cursor: pointer;
+
+  &.edit {
+    background-color: #ffc107;
+  }
+  &.delete {
+    background-color: #dc3545;
+    color: white;
+  }
+  &.save {
+    background-color: #28a745;
+    color: white;
+  }
+`;
+
+const MemberManagement = ({ clubId }) => {
+  const [members, setMembers] = useState([]);
+  const [newMember, setNewMember] = useState({
+    name: "",
+    college: "",
+    department: "",
+    student_id: "",
+    phone_number: "",
+    birth: "",
+    email: "",
+    position: "",
+    gender: "", // 성별 상태 추가
+  });
+  const [editingId, setEditingId] = useState(null);
+  const [editingData, setEditingData] = useState({});
+
+  const fetchMembers = async () => {
+    const token = localStorage.getItem("token");
     try {
-        setLoading(true);
-        const response = await axios.get(`${API_URL}/clubs/${clubId}/members/`);
-        setMembers(response.data);
+      const response = await axios.get(
+        `http://localhost:8000/api/clubs/${clubId}/members`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      setMembers(response.data);
     } catch (error) {
-        console.error("부원 목록 로딩 실패:", error);
-        alert("부원 목록을 불러오는 데 실패했습니다.");
-    } finally {
-        setLoading(false);
+      console.error("Failed to fetch members:", error);
     }
-  }, [clubId]);
+  };
 
   useEffect(() => {
     fetchMembers();
-  }, [fetchMembers]);
+  }, [clubId]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setNewMember({ ...newMember, [name]: value });
   };
-  
-  const handleSubmit = async (e) => {
+
+  const handleAddMember = async (e) => {
     e.preventDefault();
-    if (!formData.name) {
-        alert("이름은 필수 항목입니다.");
-        return;
-    }
-
-    const url = editingMember
-      ? `${API_URL}/clubs/${clubId}/members/${editingMember.id}`
-      : `${API_URL}/clubs/${clubId}/members/`;
-    
-    const method = editingMember ? 'patch' : 'post';
-
+    const token = localStorage.getItem("token");
     try {
-        await axios[method](url, formData);
-        setIsModalOpen(false);
-        fetchMembers();
-    } catch (error) {
-        const action = editingMember ? "수정" : "추가";
-        alert(`부원 ${action}에 실패했습니다.`);
-    }
-  };
-  
-  const openModal = (member = null) => {
-    if (member) {
-        setEditingMember(member);
-        setFormData(member);
-    } else {
-        setEditingMember(null);
-        setFormData({
-            name: '', birth_date: '', student_id: '', major: '', 
-            phone_number: '', email: '', member_year: '', role: '부원', memo: ''
-        });
-    }
-    setIsModalOpen(true);
-  };
-
-  const handleDelete = async (memberId) => {
-    if (window.confirm("정말로 이 부원을 삭제하시겠습니까?")) {
-        try {
-            await axios.delete(`${API_URL}/clubs/${clubId}/members/${memberId}`);
-            fetchMembers();
-        } catch (error) {
-            alert("부원 삭제에 실패했습니다.");
+      await axios.post(
+        `http://localhost:8000/api/clubs/${clubId}/members`,
+        newMember,
+        {
+          headers: { Authorization: `Bearer ${token}` },
         }
+      );
+      setNewMember({
+        name: "",
+        college: "",
+        department: "",
+        student_id: "",
+        phone_number: "",
+        birth: "",
+        email: "",
+        position: "",
+        gender: "", // 초기화
+      });
+      fetchMembers();
+    } catch (error) {
+      console.error("Failed to add member:", error);
     }
   };
 
-  if (loading && members.length === 0) return <div>로딩 중...</div>;
+  const handleDeleteMember = async (memberId) => {
+    const token = localStorage.getItem("token");
+    try {
+      await axios.delete(
+        `http://localhost:8000/api/clubs/${clubId}/members/${memberId}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      fetchMembers();
+    } catch (error) {
+      console.error("Failed to delete member:", error);
+    }
+  };
+
+  const handleEdit = (member) => {
+    setEditingId(member.id);
+    setEditingData(member);
+  };
+
+  const handleEditChange = (e) => {
+    const { name, value } = e.target;
+    setEditingData({ ...editingData, [name]: value });
+  };
+
+  const handleSave = async (memberId) => {
+    const token = localStorage.getItem("token");
+    try {
+      await axios.put(
+        `http://localhost:8000/api/clubs/${clubId}/members/${memberId}`,
+        editingData,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      setEditingId(null);
+      fetchMembers();
+    } catch (error) {
+      console.error("Failed to update member:", error);
+    }
+  };
 
   return (
-    <Wrapper>
-      <Header>
-        <MainTitle>부원 관리</MainTitle>
-        <AddButton onClick={() => openModal()}>추가하기</AddButton>
-      </Header>
-      
-      {isModalOpen && (
-        <ModalOverlay>
-            <ModalContent>
-                <h2>{editingMember ? "부원 정보 수정" : "새 부원 추가"}</h2>
-                <ModalForm onSubmit={handleSubmit}>
-                    <FormGroup>
-                        <Label>이름*</Label>
-                        <Input name="name" value={formData.name} onChange={handleInputChange} required/>
-                    </FormGroup>
-                    <FormGroup>
-                        <Label>생년월일</Label>
-                        <Input name="birth_date" placeholder="YYYY-MM-DD" value={formData.birth_date} onChange={handleInputChange} />
-                    </FormGroup>
-                    <FormGroup>
-                        <Label>학번</Label>
-                        <Input name="student_id" value={formData.student_id} onChange={handleInputChange} />
-                    </FormGroup>
-                     <FormGroup>
-                        <Label>학과</Label>
-                        <Input name="major" value={formData.major} onChange={handleInputChange} />
-                    </FormGroup>
-                     <FormGroup>
-                        <Label>연락처</Label>
-                        <Input name="phone_number" value={formData.phone_number} onChange={handleInputChange} />
-                    </FormGroup>
-                     <FormGroup>
-                        <Label>이메일</Label>
-                        <Input type="email" name="email" value={formData.email} onChange={handleInputChange} />
-                    </FormGroup>
-                     <FormGroup>
-                        <Label>기수</Label>
-                        <Input type="number" name="member_year" value={formData.member_year} onChange={handleInputChange} />
-                    </FormGroup>
-                     <FormGroup>
-                        <Label>직책</Label>
-                        <Input name="role" value={formData.role} onChange={handleInputChange} />
-                    </FormGroup>
-                    <FormGroup style={{ gridColumn: '1 / -1' }}>
-                        <Label>메모</Label>
-                        <Input name="memo" value={formData.memo} onChange={handleInputChange} />
-                    </FormGroup>
-                    <ModalActions>
-                        <CancelButton type="button" onClick={() => setIsModalOpen(false)}>취소</CancelButton>
-                        <SaveButton type="submit">저장</SaveButton>
-                    </ModalActions>
-                </ModalForm>
-            </ModalContent>
-        </ModalOverlay>
-      )}
-
-      <TableWrapper>
-        <Table>
-          <thead>
-            <tr>
-              <th>이름</th>
-              <th>생년월일</th>
-              <th>학번</th>
-              <th>학과</th>
-              <th>연락처</th>
-              <th>이메일</th>
-              <th>기수</th>
-              <th>직책</th>
-              <th>메모</th>
-              <th></th>
+    <Container>
+      <Title>부원 관리</Title>
+      <Form onSubmit={handleAddMember}>
+        <Input
+          name="name"
+          value={newMember.name}
+          onChange={handleInputChange}
+          placeholder="이름"
+          required
+        />
+        <Input
+          name="college"
+          value={newMember.college}
+          onChange={handleInputChange}
+          placeholder="단과대학"
+          required
+        />
+        <Input
+          name="department"
+          value={newMember.department}
+          onChange={handleInputChange}
+          placeholder="학과"
+          required
+        />
+        <Input
+          name="student_id"
+          value={newMember.student_id}
+          onChange={handleInputChange}
+          placeholder="학번"
+          required
+        />
+        <Input
+          name="phone_number"
+          value={newMember.phone_number}
+          onChange={handleInputChange}
+          placeholder="연락처"
+          required
+        />
+        <Input
+          name="birth"
+          value={newMember.birth}
+          onChange={handleInputChange}
+          placeholder="생년월일"
+          required
+        />
+        <Input
+          name="email"
+          type="email"
+          value={newMember.email}
+          onChange={handleInputChange}
+          placeholder="이메일"
+          required
+        />
+        <Input
+          name="position"
+          value={newMember.position}
+          onChange={handleInputChange}
+          placeholder="직책"
+          required
+        />
+        {/* 성별 선택 드롭다운 추가 */}
+        <Select name="gender" value={newMember.gender} onChange={handleInputChange} required>
+            <option value="">성별 선택</option>
+            <option value="남성">남성</option>
+            <option value="여성">여성</option>
+        </Select>
+        <Button type="submit">부원 추가</Button>
+      </Form>
+      <Table>
+        <thead>
+          <tr>
+            <Th>이름</Th>
+            <Th>단과대학</Th>
+            <Th>학과</Th>
+            <Th>학번</Th>
+            <Th>연락처</Th>
+            <Th>생년월일</Th>
+            <Th>이메일</Th>
+            <Th>직책</Th>
+            <Th>성별</Th>
+            <Th>관리</Th>
+          </tr>
+        </thead>
+        <tbody>
+          {members.map((member) => (
+            <tr key={member.id}>
+              {editingId === member.id ? (
+                <>
+                  <Td><Input name="name" value={editingData.name} onChange={handleEditChange} /></Td>
+                  <Td><Input name="college" value={editingData.college} onChange={handleEditChange} /></Td>
+                  <Td><Input name="department" value={editingData.department} onChange={handleEditChange} /></Td>
+                  <Td><Input name="student_id" value={editingData.student_id} onChange={handleEditChange} /></Td>
+                  <Td><Input name="phone_number" value={editingData.phone_number} onChange={handleEditChange} /></Td>
+                  <Td><Input name="birth" value={editingData.birth} onChange={handleEditChange} /></Td>
+                  <Td><Input name="email" value={editingData.email} onChange={handleEditChange} /></Td>
+                  <Td><Input name="position" value={editingData.position} onChange={handleEditChange} /></Td>
+                  <Td>
+                    {/* 수정 시 성별 필드 */}
+                    <Select name="gender" value={editingData.gender} onChange={handleEditChange}>
+                        <option value="">선택</option>
+                        <option value="남성">남성</option>
+                        <option value="여성">여성</option>
+                    </Select>
+                  </Td>
+                  <Td>
+                    <ActionButton className="save" onClick={() => handleSave(member.id)}>저장</ActionButton>
+                  </Td>
+                </>
+              ) : (
+                <>
+                  <Td>{member.name}</Td>
+                  <Td>{member.college}</Td>
+                  <Td>{member.department}</Td>
+                  <Td>{member.student_id}</Td>
+                  <Td>{member.phone_number}</Td>
+                  <Td>{member.birth}</Td>
+                  <Td>{member.email}</Td>
+                  <Td>{member.position}</Td>
+                  <Td>{member.gender || '미입력'}</Td> {/* 성별 데이터 표시 */}
+                  <Td>
+                    <ActionButton className="edit" onClick={() => handleEdit(member)}>수정</ActionButton>
+                    <ActionButton className="delete" onClick={() => handleDeleteMember(member.id)}>삭제</ActionButton>
+                  </Td>
+                </>
+              )}
             </tr>
-          </thead>
-          <tbody>
-            {members.length > 0 ? (
-              members.map((member) => (
-                <tr key={member.id}>
-                  <td>{member.name}</td>
-                  <td>{member.birth_date}</td>
-                  <td>{member.student_id}</td>
-                  <td>{member.major}</td>
-                  <td>{member.phone_number}</td>
-                  <td>{member.email}</td>
-                  <td>{member.member_year}</td>
-                  <td>{member.role}</td>
-                  <td>{member.memo}</td>
-                  <td>
-                    <ActionButton onClick={() => openModal(member)}>수정</ActionButton>
-                    <ActionButton onClick={() => handleDelete(member.id)}>삭제</ActionButton>
-                  </td>
-                </tr>
-              ))
-            ) : (
-              <tr>
-                <td colSpan="10" style={{ textAlign: 'center', padding: '50px' }}>
-                  등록된 부원이 없습니다.
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </Table>
-      </TableWrapper>
-    </Wrapper>
+          ))}
+        </tbody>
+      </Table>
+    </Container>
   );
-}
+};
 
-export default MemberManagement; 
+export default MemberManagement;
