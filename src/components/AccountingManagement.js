@@ -110,6 +110,8 @@ function AccountingManagement({ clubId }) {
   const [photoFile, setPhotoFile] = useState(null);
   const [isPhotoModalOpen, setIsPhotoModalOpen] = useState(false);
   const [viewingPhotoUrl, setViewingPhotoUrl] = useState('');
+  const [editId, setEditId] = useState(null);
+  const [editEntry, setEditEntry] = useState({ date: '', manager: '', description: '', amount: '' });
 
   const fetchEntries = useCallback(async () => {
     if (!clubId) return;
@@ -219,6 +221,45 @@ function AccountingManagement({ clubId }) {
     }
   };
 
+  const handleDelete = async (entryId) => {
+    if (!window.confirm('정말 삭제하시겠습니까?')) return;
+    try {
+      await axios.delete(`${API_URL}/clubs/${clubId}/accounting/${entryId}`);
+      setEntries(entries.filter(e => e.id !== entryId));
+    } catch (error) {
+      alert('삭제에 실패했습니다.');
+    }
+  };
+
+  const handleEditClick = (entry) => {
+    setEditId(entry.id);
+    setEditEntry({
+      date: entry.date,
+      manager: entry.manager || '',
+      description: entry.description,
+      amount: entry.amount
+    });
+  };
+
+  const handleEditChange = (e) => {
+    const { name, value } = e.target;
+    setEditEntry(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleEditSave = async (entryId) => {
+    try {
+      await axios.patch(`${API_URL}/clubs/${clubId}/accounting/${entryId}`, editEntry);
+      setEditId(null);
+      fetchEntries();
+    } catch (error) {
+      alert('수정에 실패했습니다.');
+    }
+  };
+
+  const handleEditCancel = () => {
+    setEditId(null);
+  };
+
   if (loading) return <div>로딩 중...</div>;
 
   return (
@@ -237,29 +278,57 @@ function AccountingManagement({ clubId }) {
               <th>금액</th>
               <th>총액</th>
               <th>사진</th>
+              <th>관리</th>
             </tr>
           </thead>
           <tbody>
             {entries.length > 0 ? (
               entries.map((entry) => (
                 <tr key={entry.id}>
-                  <td>{entry.date}</td>
-                  <td>{entry.manager}</td>
-                  <td>{entry.description}</td>
-                  <td>{entry.amount.toLocaleString()}</td>
-                  <td>{entry.running_total.toLocaleString()}</td>
-                  <td>
-                    {entry.photo_url && (
-                      <button onClick={() => openPhotoModal(`${API_URL}/${entry.photo_url}`)}>
-                        보기
-                      </button>
-                    )}
-                  </td>
+                  {editId === entry.id ? (
+                    <>
+                      <td><input type="date" name="date" value={editEntry.date} onChange={handleEditChange} /></td>
+                      <td><input type="text" name="manager" value={editEntry.manager} onChange={handleEditChange} /></td>
+                      <td><input type="text" name="description" value={editEntry.description} onChange={handleEditChange} /></td>
+                      <td><input type="number" name="amount" value={editEntry.amount} onChange={handleEditChange} /></td>
+                      <td>{entry.running_total.toLocaleString()}</td>
+                      <td>
+                        {entry.photo_url && (
+                          <button onClick={() => openPhotoModal(`${API_URL}/${entry.photo_url}`)}>
+                            보기
+                          </button>
+                        )}
+                      </td>
+                      <td>
+                        <button onClick={() => handleEditSave(entry.id)}>저장</button>
+                        <button onClick={handleEditCancel}>취소</button>
+                      </td>
+                    </>
+                  ) : (
+                    <>
+                      <td>{entry.date}</td>
+                      <td>{entry.manager}</td>
+                      <td>{entry.description}</td>
+                      <td>{entry.amount.toLocaleString()}</td>
+                      <td>{entry.running_total.toLocaleString()}</td>
+                      <td>
+                        {entry.photo_url && (
+                          <button onClick={() => openPhotoModal(`${API_URL}/${entry.photo_url}`)}>
+                            보기
+                          </button>
+                        )}
+                      </td>
+                      <td>
+                        <button onClick={() => handleEditClick(entry)}>수정</button>
+                        <button onClick={() => handleDelete(entry.id)}>삭제</button>
+                      </td>
+                    </>
+                  )}
                 </tr>
               ))
             ) : (
               <tr>
-                <td colSpan="6" style={{ textAlign: 'center', padding: '50px' }}>
+                <td colSpan="7" style={{ textAlign: 'center', padding: '50px' }}>
                   등록된 내역이 없습니다.
                 </td>
               </tr>
@@ -275,7 +344,7 @@ function AccountingManagement({ clubId }) {
               <td><input type="file" name="photo" onChange={handleFileChange} /></td>
             </tr>
             <tr>
-              <td colSpan="6">
+              <td colSpan="7">
                 <AddButton onClick={handleSubmit}>내역 추가</AddButton>
               </td>
             </tr>

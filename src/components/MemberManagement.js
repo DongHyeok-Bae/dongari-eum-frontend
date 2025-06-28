@@ -96,11 +96,12 @@ const ActionButton = styled.button`
   }
 `;
 
+const API_URL = process.env.REACT_APP_API_URL;
+
 const MemberManagement = ({ clubId }) => {
   const [members, setMembers] = useState([]);
   const [newMember, setNewMember] = useState({
     name: "",
-    college: "",
     department: "",
     student_id: "",
     phone_number: "",
@@ -116,7 +117,7 @@ const MemberManagement = ({ clubId }) => {
     const token = localStorage.getItem("token");
     try {
       const response = await axios.get(
-        `http://localhost:8000/api/clubs/${clubId}/members`,
+        `${API_URL}/clubs/${clubId}/members`,
         {
           headers: { Authorization: `Bearer ${token}` },
         }
@@ -141,7 +142,7 @@ const MemberManagement = ({ clubId }) => {
     const token = localStorage.getItem("token");
     try {
       await axios.post(
-        `http://localhost:8000/api/clubs/${clubId}/members`,
+        `${API_URL}/clubs/${clubId}/members`,
         newMember,
         {
           headers: { Authorization: `Bearer ${token}` },
@@ -149,14 +150,13 @@ const MemberManagement = ({ clubId }) => {
       );
       setNewMember({
         name: "",
-        college: "",
         department: "",
         student_id: "",
         phone_number: "",
         birth: "",
         email: "",
         position: "",
-        gender: "", // 초기화
+        gender: "",
       });
       fetchMembers();
     } catch (error) {
@@ -168,7 +168,7 @@ const MemberManagement = ({ clubId }) => {
     const token = localStorage.getItem("token");
     try {
       await axios.delete(
-        `http://localhost:8000/api/clubs/${clubId}/members/${memberId}`,
+        `${API_URL}/clubs/${clubId}/members/${memberId}`,
         {
           headers: { Authorization: `Bearer ${token}` },
         }
@@ -193,7 +193,7 @@ const MemberManagement = ({ clubId }) => {
     const token = localStorage.getItem("token");
     try {
       await axios.put(
-        `http://localhost:8000/api/clubs/${clubId}/members/${memberId}`,
+        `${API_URL}/clubs/${clubId}/members/${memberId}`,
         editingData,
         {
           headers: { Authorization: `Bearer ${token}` },
@@ -202,7 +202,7 @@ const MemberManagement = ({ clubId }) => {
       setEditingId(null);
       fetchMembers();
     } catch (error) {
-      console.error("Failed to update member:", error);
+      console.error("Failed to save member:", error);
     }
   };
 
@@ -210,68 +210,17 @@ const MemberManagement = ({ clubId }) => {
     <Container>
       <Title>부원 관리</Title>
       <Form onSubmit={handleAddMember}>
-        <Input
-          name="name"
-          value={newMember.name}
-          onChange={handleInputChange}
-          placeholder="이름"
-          required
-        />
-        <Input
-          name="college"
-          value={newMember.college}
-          onChange={handleInputChange}
-          placeholder="단과대학"
-          required
-        />
-        <Input
-          name="department"
-          value={newMember.department}
-          onChange={handleInputChange}
-          placeholder="학과"
-          required
-        />
-        <Input
-          name="student_id"
-          value={newMember.student_id}
-          onChange={handleInputChange}
-          placeholder="학번"
-          required
-        />
-        <Input
-          name="phone_number"
-          value={newMember.phone_number}
-          onChange={handleInputChange}
-          placeholder="연락처"
-          required
-        />
-        <Input
-          name="birth"
-          value={newMember.birth}
-          onChange={handleInputChange}
-          placeholder="생년월일"
-          required
-        />
-        <Input
-          name="email"
-          type="email"
-          value={newMember.email}
-          onChange={handleInputChange}
-          placeholder="이메일"
-          required
-        />
-        <Input
-          name="position"
-          value={newMember.position}
-          onChange={handleInputChange}
-          placeholder="직책"
-          required
-        />
-        {/* 성별 선택 드롭다운 추가 */}
-        <Select name="gender" value={newMember.gender} onChange={handleInputChange} required>
-            <option value="">성별 선택</option>
-            <option value="남성">남성</option>
-            <option value="여성">여성</option>
+        <Input name="name" placeholder="이름" value={newMember.name} onChange={handleInputChange} />
+        <Input name="department" placeholder="학과" value={newMember.department} onChange={handleInputChange} />
+        <Input name="student_id" placeholder="학번" value={newMember.student_id} onChange={handleInputChange} />
+        <Input name="phone_number" placeholder="연락처" value={newMember.phone_number} onChange={handleInputChange} />
+        <Input name="birth" placeholder="생년월일" value={newMember.birth} onChange={handleInputChange} />
+        <Input name="email" placeholder="이메일" value={newMember.email} onChange={handleInputChange} />
+        <Input name="position" placeholder="직책" value={newMember.position} onChange={handleInputChange} />
+        <Select name="gender" value={newMember.gender} onChange={handleInputChange}>
+          <option value="">성별 선택</option>
+          <option value="남">남</option>
+          <option value="여">여</option>
         </Select>
         <Button type="submit">부원 추가</Button>
       </Form>
@@ -279,7 +228,6 @@ const MemberManagement = ({ clubId }) => {
         <thead>
           <tr>
             <Th>이름</Th>
-            <Th>단과대학</Th>
             <Th>학과</Th>
             <Th>학번</Th>
             <Th>연락처</Th>
@@ -296,7 +244,6 @@ const MemberManagement = ({ clubId }) => {
               {editingId === member.id ? (
                 <>
                   <Td><Input name="name" value={editingData.name} onChange={handleEditChange} /></Td>
-                  <Td><Input name="college" value={editingData.college} onChange={handleEditChange} /></Td>
                   <Td><Input name="department" value={editingData.department} onChange={handleEditChange} /></Td>
                   <Td><Input name="student_id" value={editingData.student_id} onChange={handleEditChange} /></Td>
                   <Td><Input name="phone_number" value={editingData.phone_number} onChange={handleEditChange} /></Td>
@@ -304,11 +251,10 @@ const MemberManagement = ({ clubId }) => {
                   <Td><Input name="email" value={editingData.email} onChange={handleEditChange} /></Td>
                   <Td><Input name="position" value={editingData.position} onChange={handleEditChange} /></Td>
                   <Td>
-                    {/* 수정 시 성별 필드 */}
                     <Select name="gender" value={editingData.gender} onChange={handleEditChange}>
                         <option value="">선택</option>
-                        <option value="남성">남성</option>
-                        <option value="여성">여성</option>
+                        <option value="남">남</option>
+                        <option value="여">여</option>
                     </Select>
                   </Td>
                   <Td>
@@ -318,14 +264,13 @@ const MemberManagement = ({ clubId }) => {
               ) : (
                 <>
                   <Td>{member.name}</Td>
-                  <Td>{member.college}</Td>
                   <Td>{member.department}</Td>
                   <Td>{member.student_id}</Td>
                   <Td>{member.phone_number}</Td>
                   <Td>{member.birth}</Td>
                   <Td>{member.email}</Td>
                   <Td>{member.position}</Td>
-                  <Td>{member.gender || '미입력'}</Td> {/* 성별 데이터 표시 */}
+                  <Td>{member.gender}</Td>
                   <Td>
                     <ActionButton className="edit" onClick={() => handleEdit(member)}>수정</ActionButton>
                     <ActionButton className="delete" onClick={() => handleDeleteMember(member.id)}>삭제</ActionButton>

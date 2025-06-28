@@ -165,7 +165,6 @@ const formatDate = (dateString) => {
 
 function ClubMainPage() {
   const [clubInfo, setClubInfo] = useState(null);
-  const [userInfo, setUserInfo] = useState(null);
   const [loading, setLoading] = useState(true);
   const [activeView, setActiveView] = useState('schedule'); // 'schedule', 'members', 'accounting'
   const [operationLogs, setOperationLogs] = useState([]);
@@ -201,13 +200,8 @@ function ClubMainPage() {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const [clubResponse, userResponse] = await Promise.all([
-          axios.get(`${API_URL}/clubs/${clubId}`),
-          axios.get(`${API_URL}/auth/users/me`)
-        ]);
-
+        const clubResponse = await axios.get(`${API_URL}/clubs/${clubId}`);
         setClubInfo(clubResponse.data);
-        setUserInfo(userResponse.data);
       } catch (error) {
         console.error("데이터 로딩 실패:", error);
         alert("데이터를 불러오는 데 실패했습니다.");
@@ -232,7 +226,7 @@ function ClubMainPage() {
     return <PageWrapper><div>로딩 중...</div></PageWrapper>;
   }
 
-  if (!clubInfo || !userInfo) {
+  if (!clubInfo) {
     return <PageWrapper><div>정보를 불러올 수 없습니다.</div></PageWrapper>;
   }
   
@@ -267,19 +261,22 @@ function ClubMainPage() {
             <NavItem>(설정)</NavItem>
             <NavItem onClick={() => navigate('/main')}>동아리 생성/참여</NavItem>
         </BottomMenu>
-        <UserProfile>
-          <UserAvatar />
-          <div>
-            <UserName>{userInfo.last_name}{userInfo.first_name}</UserName>
-            <LogoutButton>로그아웃</LogoutButton>
-          </div>
-        </UserProfile>
       </Sidebar>
       <MainContent>
         {activeView === 'schedule' && (
             <>
                 <Header>
-                  <MainTitle>{clubInfo.name} 활동 일지</MainTitle>
+                  <div>
+                    <MainTitle>{clubInfo.name} 활동 일지</MainTitle>
+                    <div style={{marginTop: '8px'}}>
+                      {clubInfo.club_type && (
+                        <span style={{background:'#f0f0f0',borderRadius:8,padding:'4px 10px',marginRight:8,fontSize:'0.95rem'}}>{clubInfo.club_type}</span>
+                      )}
+                      {clubInfo.topic && (
+                        <span style={{background:'#f0f0f0',borderRadius:8,padding:'4px 10px',fontSize:'0.95rem'}}>{clubInfo.topic}</span>
+                      )}
+                    </div>
+                  </div>
                   <AddRecordButton onClick={() => navigate(`/club/${clubId}/operation-logs/new`)}>
                     추가하기
                   </AddRecordButton>

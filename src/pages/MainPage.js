@@ -377,9 +377,12 @@ function MainPage() {
             <CloseButton onClick={closeModal}>&times;</CloseButton>
             <ModalClubLogo src={`${API_URL}/${selectedGroup.image_url}`} alt={selectedGroup.name} />
             <ModalClubName>{selectedGroup.name}</ModalClubName>
+            {selectedGroup.description && (
+              <p style={{ color: '#888', margin: '10px 0 20px 0', textAlign: 'center' }}>{selectedGroup.description}</p>
+            )}
             <ModalTags>
-              <span>{selectedGroup.club_type}</span>
-              <span>{selectedGroup.topic}</span>
+              {selectedGroup.club_type && <span>{selectedGroup.club_type}</span>}
+              {selectedGroup.topic && <span>{selectedGroup.topic}</span>}
             </ModalTags>
             <form onSubmit={handleJoin} style={{width: '100%', display: 'contents'}}>
               <CodeLabel>입장코드</CodeLabel>
